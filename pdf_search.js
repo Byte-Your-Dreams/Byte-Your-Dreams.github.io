@@ -9,7 +9,7 @@ async function caricaCandidatura() {
     for (const file of files) {
         if (file.type === "file" && file.name.endsWith(".pdf")) {
             const link = document.createElement("a");
-            link.href = file.download_url;
+            link.href = file.html_url; // Cambiato da download_url a html_url
             link.target = "_blank";
             link.classList.add("btn", "btn-link", "text-decoration-none", "d-block", "mb-2");
             link.textContent = file.name;
@@ -68,7 +68,7 @@ async function caricaPDF(cartella, accordionId) {
             await caricaPDF(`${cartella}/${file.name}`, body.id);
         } else if (file.name.endsWith(".pdf")) {
             const link = document.createElement("a");
-            link.href = file.download_url;
+            link.href = file.html_url; // Cambiato da download_url a html_url
             link.target = "_blank";
             link.classList.add("btn", "btn-link", "text-decoration-none", "d-block", "mb-2");
             link.textContent = file.name;
