@@ -4,18 +4,27 @@ async function caricaCandidatura() {
     const response = await fetch(url);
     const files = await response.json();
 
+    // Filtra solo i file PDF
+    const pdfFiles = files.filter(file => file.type === "file" && file.name.endsWith(".pdf"));
+
+    // Ordina i file in base all'ordine personalizzato
+    const ordinePersonalizzato = ["PB", "RTB", "Candidatura"];
+    pdfFiles.sort((a, b) => {
+        const indexA = ordinePersonalizzato.findIndex(keyword => a.name.includes(keyword));
+        const indexB = ordinePersonalizzato.findIndex(keyword => b.name.includes(keyword));
+        return indexA - indexB;
+    });
+
     const sezione = document.getElementById("documenti-candidatura");
 
-    for (const file of files) {
-        if (file.type === "file" && file.name.endsWith(".pdf")) {
-            const link = document.createElement("a");
-            link.href = file.html_url; // Cambiato da download_url a html_url
-            link.target = "_blank";
-            link.classList.add("btn", "btn-link", "text-decoration-none", "d-block", "mb-2");
-            link.textContent = file.name;
+    for (const file of pdfFiles) {
+        const link = document.createElement("a");
+        link.href = file.html_url; // Cambiato da download_url a html_url
+        link.target = "_blank";
+        link.classList.add("btn", "btn-link", "text-decoration-none", "d-block", "mb-2");
+        link.textContent = file.name;
 
-            sezione.appendChild(link);
-        }
+        sezione.appendChild(link);
     }
 }
 
@@ -24,9 +33,15 @@ async function caricaPDF(cartella, accordionId) {
     const url = `https://api.github.com/repos/Byte-Your-Dreams/Documents/contents/${cartella}`;
     const response = await fetch(url);
     const files = await response.json();
-
+    console.log('ok sto guarnendo la cartella', cartella);
+    console.log('files:', files);
     const accordion = document.getElementById(accordionId);
-
+    if (cartella === "Documenti%20Esterni/Verbali" || cartella === "Documenti%20Interni/Verbali") {
+        // Se la cartella è "Verbali", ordina i file in ordine crescente
+        console.log('sto ordinando i file in ordine crescente');
+        files.sort((a, b) => b.name.localeCompare(a.name));
+        console.log('files ordinati:', files);
+    }
     for (const file of files) {
         if (file.type === "dir") {
             const collapseId = `${accordionId}-${file.name}`;
@@ -65,6 +80,7 @@ async function caricaPDF(cartella, accordionId) {
             accordionItem.appendChild(collapse);
             accordion.appendChild(accordionItem);
 
+            // Chiamata ricorsiva per esplorare la sottocartella
             await caricaPDF(`${cartella}/${file.name}`, body.id);
         } else if (file.name.endsWith(".pdf")) {
             const link = document.createElement("a");
@@ -73,7 +89,7 @@ async function caricaPDF(cartella, accordionId) {
             link.classList.add("btn", "btn-link", "text-decoration-none", "d-block", "mb-2");
             link.textContent = file.name;
 
-            document.getElementById(accordionId).appendChild(link);
+            accordion.appendChild(link);
         }
     }
 }
